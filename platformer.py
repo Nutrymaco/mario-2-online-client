@@ -50,8 +50,8 @@ class Game:
         # self._register_on_server()
         self._init_graphics()
         self._init_position_manager()
-        self._start_graphic()
         self.position_manager.start()
+        self._start_graphic()
 
     def _get_info_from_user(self):
         self.player_name = input("Enter name: ")
