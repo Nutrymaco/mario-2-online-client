@@ -2,10 +2,6 @@ import json
 from threading import Thread
 
 import websocket
-from sseclient import SSEClient
-
-HOST = "212.193.49.161:8080"
-# HOST = "localhost:8080"
 
 
 class PositionHolder:
@@ -17,12 +13,12 @@ class PositionHolder:
 
 
 class PlayersPositionManager:
-    def __init__(self, player_name):
+    def __init__(self, player_name, host):
         self.player_name = player_name
         self.player_pos_dict = dict()
-        self.wsapp = websocket.WebSocketApp(f"ws://{HOST}/position/{player_name}", on_message=self._message_reader)
+        self.wsapp = websocket.WebSocketApp(f"ws://{host}/position/{player_name}", on_message=self._message_reader)
         self.ws = websocket.WebSocket()
-        self.ws.connect(f"ws://{HOST}/position/{player_name}")
+        self.ws.connect(f"ws://{host}/position/{player_name}")
         self.thread = Thread(target=self.wsapp.run_forever)
 
     def start(self):

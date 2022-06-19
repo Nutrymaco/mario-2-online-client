@@ -1,20 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-
 from pygame import *
+from configuration import *
 
 import pyganim
-
-MOVE_SPEED = 7
-WIDTH = 22
-HEIGHT = 32
-COLOR =  "#888888"
-JUMP_POWER = 10
-GRAVITY = 0.35 # Сила, которая будет тянуть нас вниз
-ANIMATION_DELAY = 0.001 # скорость смены кадров
-ICON_DIR = os.path.dirname(__file__) #  Полный путь к каталогу с файлами
 
 ANIMATION_RIGHT = [('%s/mario/r1.png' % ICON_DIR),
             ('%s/mario/r2.png' % ICON_DIR),
