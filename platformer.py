@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import json
 from time import time as py_time
 
 import pygame
@@ -66,7 +67,13 @@ class Game:
             self.host = LOCAL_HOST
 
     def _register_on_server(self):
-        requests.patch(f"http://{self.host}/rooms/{self.room_name}", data="{\"name\": \"" + self.player_name + "\"}", headers={"Content-Type": "application/json"})
+        resp = requests.patch(
+            f"http://{self.host}/rooms/{self.room_name}",
+            data="{\"name\": \"" + self.player_name + "\"}",
+            headers={"Content-Type": "application/json"})\
+            .content
+        room = json.loads(resp)
+        self.level = room["level"]["value"]
 
     def _init_graphics(self):
         self._init_window()
@@ -97,7 +104,6 @@ class Game:
                 print("ignore blocks")
             else:
                 self.hero.ignore_blocks = False
-
 
             for e in pygame.event.get():
                 if e.type == QUIT:
@@ -138,7 +144,6 @@ class Game:
 
     def _init_level(self):
         x = y = 0  # координаты
-        self.level = get_random_level(4590 // 32, 40)
         for row in self.level:  # вся строка
             for col in row:  # каждый символ
                 if col == "-":
@@ -158,6 +163,7 @@ class Game:
             last_pos = self.server_client.get_last_pos(other_player_name)
             if other_player_name != self.player_name:
                 if other_player_name not in self.other_players.keys():
+                    print("add new player")
                     other_player_info = PlayerInfo(other_player_name, PlayerSprite(30, 4500))
                     self.other_players[other_player_name] = other_player_info
                     self.entities.add(other_player_info.sprite)

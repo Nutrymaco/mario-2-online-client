@@ -43,8 +43,8 @@ class ServerClient:
         msg = json.loads(raw_msg)
         if msg["type"] == "POSITION":
             position = msg["data"]
-            print("load pos : " + raw_msg + " for " + position["player_name"])
-            self.player_pos_dict[position["player_name"]] = position
+            print("load pos : " + raw_msg + " for " + msg["playerName"])
+            self.player_pos_dict[msg["playerName"]] = position
         elif msg["type"] == "DISABLE_BLOCK":
             print("get disable action")
             print(msg)
