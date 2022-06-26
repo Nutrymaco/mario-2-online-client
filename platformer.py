@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from time import time as py_time
+
 import pygame
 import requests
 
@@ -7,7 +9,7 @@ from blocks import Platform
 from level_generator import get_random_level
 from player import *
 
-from position import PlayersPositionManager
+from server_actions import ServerClient
 
 
 class Camera(object):
@@ -38,8 +40,9 @@ def camera_configure(camera, target_rect):
 class Game:
     def __init__(self):
         self.player_name = None
+        self.room_name = None
         self.level = None
-        self.position_manager = None
+        self.server_client = None
         self.host = None
         self.hero = PlayerSprite(30, 4500)
         self.platforms = []  # то, во что мы будем врезаться или опираться
@@ -47,14 +50,15 @@ class Game:
 
     def start(self):
         self._get_info_from_user()
-        # self._register_on_server()
+        self._register_on_server()
         self._init_graphics()
         self._init_position_manager()
-        self.position_manager.start()
+        self.server_client.start()
         self._start_graphic()
 
     def _get_info_from_user(self):
         self.player_name = input("Enter name: ")
+        self.room_name = input("Enter room name: ")
         connect_to_server = input("Connect to remote server? (Yes/No) ").lower()
         if connect_to_server == "yes":
             self.host = REMOTE_HOST
@@ -62,7 +66,7 @@ class Game:
             self.host = LOCAL_HOST
 
     def _register_on_server(self):
-        requests.post(f"http://{self.host}/players", data={"name": self.player_name}, headers={"Content-Type": "application/json"})
+        requests.patch(f"http://{self.host}/rooms/{self.room_name}", data="{\"name\": \"" + self.player_name + "\"}", headers={"Content-Type": "application/json"})
 
     def _init_graphics(self):
         self._init_window()
@@ -87,6 +91,14 @@ class Game:
         boost = left = right = up = False
         while True:
             self.timer.tick(60)
+
+            if self.server_client.block_disable_start < py_time() * 1000 < self.server_client.block_disable_end:
+                self.hero.ignore_blocks = True
+                print("ignore blocks")
+            else:
+                self.hero.ignore_blocks = False
+
+
             for e in pygame.event.get():
                 if e.type == QUIT:
                     flag = True
@@ -99,6 +111,8 @@ class Game:
                     right = True
                 if e.type == KEYDOWN and e.key == K_LSHIFT:
                     boost = True
+                if e.type == KEYDOWN and e.key == K_RSHIFT:
+                    self.server_client.send_disable_block_action()
 
                 if e.type == KEYUP and e.key == K_UP:
                     up = False
@@ -113,14 +127,14 @@ class Game:
 
             self.camera.update(self.hero)  # центризируем камеру относительно персонажа
             self.hero.update(left, right, up, self.platforms, boost)  # передвижение
-            self.position_manager.send_position(self.hero.rect.x, self.hero.rect.y)
+            self.server_client.send_position(self.hero.rect.x, self.hero.rect.y)
             self._update_other_players_info()
             for e in self.entities:
                 self.screen.blit(e.image, self.camera.apply(e))
             pygame.display.update()  # обновление и вывод всех изменений на экран
 
     def _init_position_manager(self):
-        self.position_manager = PlayersPositionManager(self.player_name, self.host)
+        self.server_client = ServerClient(self.player_name, self.host)
 
     def _init_level(self):
         x = y = 0  # координаты
@@ -140,8 +154,8 @@ class Game:
         self.total_level_height = len(self.level) * PLATFORM_HEIGHT  # высоту
 
     def _update_other_players_info(self):
-        for other_player_name in list(self.position_manager.get_all_players_name()):
-            last_pos = self.position_manager.get_last_pos(other_player_name)
+        for other_player_name in list(self.server_client.get_all_players_name()):
+            last_pos = self.server_client.get_last_pos(other_player_name)
             if other_player_name != self.player_name:
                 if other_player_name not in self.other_players.keys():
                     other_player_info = PlayerInfo(other_player_name, PlayerSprite(30, 4500))
