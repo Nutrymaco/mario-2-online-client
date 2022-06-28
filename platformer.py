@@ -7,9 +7,7 @@ import pygame
 import requests
 
 from blocks import Platform
-from level_generator import get_random_level
 from player import *
-
 from server_actions import ServerClient
 
 
@@ -77,7 +75,7 @@ class Game:
 
     def _init_graphics(self):
         self._init_window()
-          # создаем героя по (x,y) координатам
+        # создаем героя по (x,y) координатам
         self.entities = pygame.sprite.Group()  # Все объекты
         self.entities.add(self.hero)
         self._init_level()
@@ -96,14 +94,22 @@ class Game:
 
     def _start_graphic(self):
         boost = left = right = up = False
+        is_blocks_transparent = False
         while True:
             self.timer.tick(60)
 
             if self.server_client.block_disable_start < py_time() * 1000 < self.server_client.block_disable_end:
                 self.hero.ignore_blocks = True
-                print("ignore blocks")
+                if not is_blocks_transparent:
+                    for p in self.platforms:
+                        p.image.set_alpha(180)
+                    is_blocks_transparent = True
             else:
                 self.hero.ignore_blocks = False
+                if is_blocks_transparent:
+                    for p in self.platforms:
+                        p.image.set_alpha(255)
+                    is_blocks_transparent = False
 
             for e in pygame.event.get():
                 if e.type == QUIT:
