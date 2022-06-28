@@ -25,6 +25,7 @@ ANIMATION_STAY = [('%s/mario/0.png' % ICON_DIR, 0.1)]
 class PlayerSprite(sprite.Sprite):
     def __init__(self, x, y, name=''):
         sprite.Sprite.__init__(self)
+        self.ignore_blocks = False
         self.xvel = 0   #скорость перемещения. 0 - стоять на месте
         self.startX = x # Начальная позиция Х, пригодится когда будем переигрывать уровень
         self.startY = y
@@ -117,7 +118,7 @@ class PlayerSprite(sprite.Sprite):
    
     def collide(self, xvel, yvel, platforms):
         for p in platforms:
-            if sprite.collide_rect(self, p):  # если есть пересечение платформы с игроком
+            if not self.ignore_blocks and sprite.collide_rect(self, p):  # если есть пересечение платформы с игроком
                 if xvel > 0:                      # если движется вправо
                     self.rect.right = p.rect.left  # то не движется вправо
 
