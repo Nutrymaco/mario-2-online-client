@@ -134,6 +134,10 @@ class Game:
                     left = False
                 if e.type == KEYUP and e.key == K_LSHIFT:
                     boost = False
+                if e.type == KEYUP and e.key == K_BACKSPACE:
+                    self.hero.rect.x = 40
+                    self.hero.rect.y = 4500
+
 
             self.screen.blit(self.bg, (0, 0))  # Каждую итерацию необходимо всё перерисовывать
 
