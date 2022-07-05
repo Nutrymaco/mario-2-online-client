@@ -50,8 +50,9 @@ class ServerClient:
         elif msg["type"] == "DISABLE_BLOCK":
             print("get disable action")
             print(msg)
-            self.block_disable_start = msg["data"]["start"]
-            self.block_disable_end = self.block_disable_start + msg["data"]["duration"]
+            if msg["playerName"] != self.player_name:
+                self.block_disable_start = msg["data"]["start"]
+                self.block_disable_end = self.block_disable_start + msg["data"]["duration"]
 
     def send_position(self, x, y):
         if self.last_pos_x is not None and self.last_pos_x == x and self.last_pos_y == y:
@@ -61,4 +62,8 @@ class ServerClient:
         self.ws.send(format("{\"type\": \"POSITION\", \"timestamp\": \"" + str(cur_time_in_millis()) + "\", \"data\": {\"x\" : " + str(x) + ", \"y\" : " + str(y) + "}}"))
 
     def send_disable_block_action(self):
-        self.ws.send(json.dumps({"type": "DISABLE_BLOCK", "timestamp" : str(cur_time_in_millis())}))
+        self.ws.send(json.dumps({
+            "type": "DISABLE_BLOCK",
+            "timestamp" : str(cur_time_in_millis()),
+            "playerName": self.player_name
+        }))
