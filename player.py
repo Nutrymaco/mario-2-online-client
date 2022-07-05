@@ -118,7 +118,7 @@ class PlayerSprite(sprite.Sprite):
    
     def collide(self, xvel, yvel, platforms):
         for p in platforms:
-            if not self.ignore_blocks and sprite.collide_rect(self, p):  # если есть пересечение платформы с игроком
+            if not (self.ignore_blocks and p.is_switchable) and sprite.collide_rect(self, p):  # если есть пересечение платформы с игроком
                 if xvel > 0:                      # если движется вправо
                     self.rect.right = p.rect.left  # то не движется вправо
 

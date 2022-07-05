@@ -102,13 +102,15 @@ class Game:
                 self.hero.ignore_blocks = True
                 if not is_blocks_transparent:
                     for p in self.platforms:
-                        p.image.set_alpha(180)
+                        if p.is_switchable:
+                            p.image.set_alpha(180)
                     is_blocks_transparent = True
             else:
                 self.hero.ignore_blocks = False
                 if is_blocks_transparent:
                     for p in self.platforms:
-                        p.image.set_alpha(255)
+                        if p.is_switchable:
+                            p.image.set_alpha(255)
                     is_blocks_transparent = False
 
             for e in pygame.event.get():
@@ -157,7 +159,10 @@ class Game:
         for row in self.level:  # вся строка
             for col in row:  # каждый символ
                 if col == "-":
-                    pf = Platform(x, y)
+                    if y == 4800:
+                        pf = Platform(x, y, is_switchable=False)
+                    else:
+                        pf = Platform(x, y, is_switchable=True)
                     self.entities.add(pf)
                     self.platforms.append(pf)
 
