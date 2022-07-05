@@ -163,15 +163,15 @@ class Game:
                 self.message_repository.push({
                     "x": self.hero.rect.x,
                     "y": self.hero.rect.y,
-                    "action_type": self.hero.cur_action_type
+                    "anim_type": self.hero.cur_anim_type
                 })
             else:
                 last_pos = self.message_repository.pop_last_message()
                 self.hero.rect.x = last_pos["x"]
                 self.hero.rect.y = last_pos["y"]
-                self.hero.update_by_action_type(last_pos["action_type"])
+                self.hero.update_animation(last_pos["anim_type"])
 
-            self.server_client.send_position(self.hero.rect.x, self.hero.rect.y)
+            self.server_client.send_position(self.hero.rect.x, self.hero.rect.y, self.hero.cur_anim_type)
             self._update_other_players_info()
             for e in self.entities:
                 self.screen.blit(e.image, self.camera.apply(e))
@@ -210,5 +210,10 @@ class Game:
                     other_player_info = PlayerInfo(other_player_name, PlayerSprite(30, 4500))
                     self.other_players[other_player_name] = other_player_info
                     self.entities.add(other_player_info.sprite)
-                self.other_players[other_player_name].sprite.rect.x = last_pos["x"]
-                self.other_players[other_player_name].sprite.rect.y = last_pos["y"]
+                other_player = self.other_players[other_player_name]
+                if other_player.sprite.rect.x == last_pos["x"] and other_player.sprite.rect.y == last_pos["y"]:
+                    other_player.sprite.update_animation("STAY")
+                else:
+                    other_player.sprite.rect.x = last_pos["x"]
+                    other_player.sprite.rect.y = last_pos["y"]
+                    other_player.sprite.update_animation(last_pos["animType"])

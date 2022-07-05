@@ -62,7 +62,7 @@ class PlayerSprite(sprite.Sprite):
         self.name = name
         self.count_jumps = 0
 
-        self.cur_action_type = "STAY"
+        self.cur_anim_type = "STAY"
 
     def update(self, left, right, up, platforms, boost=False):
         if self.onGround:
@@ -78,7 +78,7 @@ class PlayerSprite(sprite.Sprite):
 
             self.image.fill(Color(COLOR))
             self.boltAnimJump.blit(self.image, (0, 0))
-            self.cur_action_type = "JUMP"
+            self.cur_anim_type = "JUMP"
 
         if left:
             if boost:
@@ -88,10 +88,10 @@ class PlayerSprite(sprite.Sprite):
             self.image.fill(Color(COLOR))
             if up: # для прыжка влево есть отдельная анимация
                 self.boltAnimJumpLeft.blit(self.image, (0, 0))
-                self.cur_action_type = "JUMP_LEFT"
+                self.cur_anim_type = "JUMP_LEFT"
             else:
                 self.boltAnimLeft.blit(self.image, (0, 0))
-                self.cur_action_type = "LEFT"
+                self.cur_anim_type = "LEFT"
  
         if right:
             if boost:
@@ -101,17 +101,17 @@ class PlayerSprite(sprite.Sprite):
             self.image.fill(Color(COLOR))
             if up:
                 self.boltAnimJumpRight.blit(self.image, (0, 0))
-                self.cur_action_type = "JUMP_RIGHT"
+                self.cur_anim_type = "JUMP_RIGHT"
             else:
                 self.boltAnimRight.blit(self.image, (0, 0))
-                self.cur_action_type = "RIGHT"
+                self.cur_anim_type = "RIGHT"
          
         if not(left or right): # стоим, когда нет указаний идти
             self.xvel = 0
             if not up:
                 self.image.fill(Color(COLOR))
                 self.boltAnimStay.blit(self.image, (0, 0))
-                self.cur_action_type = "STAY"
+                self.cur_anim_type = "STAY"
             
         if not self.onGround:
             self.yvel += GRAVITY
@@ -123,19 +123,23 @@ class PlayerSprite(sprite.Sprite):
         self.rect.x += self.xvel # переносим свои положение на xvel
         self.collide(self.xvel, 0, platforms)
 
-    def update_by_action_type(self, action_type):
+    def update_animation(self, anim_type):
+        self.cur_anim_type = anim_type
         self.image.fill(Color(COLOR))
-        if action_type == "STAY":
+        if anim_type == "STAY":
             self.boltAnimStay.blit(self.image, (0, 0))
-        elif action_type == "RIGHT":
+        elif anim_type == "RIGHT":
             self.boltAnimRight.blit(self.image, (0, 0))
-        elif action_type == "LEFT":
+        elif anim_type == "LEFT":
             self.boltAnimLeft.blit(self.image, (0, 0))
-        elif action_type == "JUMP_RIGHT":
+        elif anim_type == "JUMP":
+            self.boltAnimJump.blit(self.image, (0, 0))
+        elif anim_type == "JUMP_RIGHT":
             self.boltAnimJumpRight.blit(self.image, (0, 0))
-        elif action_type == "JUMP_LEFT":
+        elif anim_type == "JUMP_LEFT":
             self.boltAnimJumpLeft.blit(self.image, (0, 0))
-
+        else:
+            raise AttributeError(f"not known anim type: {anim_type}")
 
     def collide(self, xvel, yvel, platforms):
         for p in platforms:

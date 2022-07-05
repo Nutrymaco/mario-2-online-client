@@ -56,12 +56,20 @@ class ServerClient:
                 self.block_disable_start = msg["data"]["start"]
                 self.block_disable_end = self.block_disable_start + msg["data"]["duration"]
 
-    def send_position(self, x, y):
+    def send_position(self, x, y, anim_type):
         if self.last_pos_x is not None and self.last_pos_x == x and self.last_pos_y == y:
             return
         self.last_pos_x = x
         self.last_pos_y = y
-        self.ws.send(format("{\"type\": \"POSITION\", \"timestamp\": \"" + str(cur_time_in_millis()) + "\", \"data\": {\"x\" : " + str(x) + ", \"y\" : " + str(y) + "}}"))
+        self.ws.send(json.dumps({
+            "type": "POSITION",
+            "timestamp": cur_time_in_millis(),
+            "data": {
+                "x": x,
+                "y": y,
+                "animType": anim_type
+            }
+        }))
 
     def send_disable_block_action(self):
         self.ws.send(json.dumps({
