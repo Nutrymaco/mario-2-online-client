@@ -103,7 +103,7 @@ class Game:
                 if not is_blocks_transparent:
                     for p in self.platforms:
                         if p.is_switchable:
-                            p.image.set_alpha(180)
+                            p.image.set_alpha(140)
                     is_blocks_transparent = True
             else:
                 self.hero.ignore_blocks = False
