@@ -32,6 +32,8 @@ class ServerClient:
         self.thread.start()
 
     def stop(self):
+        self.wsapp.close()
+        self.ws.close()
         self.thread.join()
 
     def get_last_pos(self, player_name):

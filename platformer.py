@@ -7,6 +7,7 @@ import pygame
 import requests
 
 from blocks import Platform
+from message import MessageRepository
 from player import *
 from server_actions import ServerClient
 from utils import cur_time_in_millis
@@ -48,13 +49,15 @@ class Game:
         self.platforms = []  # то, во что мы будем врезаться или опираться
         self.other_players = dict()
         self.last_disable_block_activating = 0
+        self.in_rewind = False
+        self.rewind_start = 0
+        self.message_repository = MessageRepository()
 
     def start(self):
         self._get_info_from_user()
         self._register_on_server()
         self._init_graphics()
-        self._init_position_manager()
-        self.server_client.start()
+        self._init_external_resources()
         self._start_graphic()
 
     def _get_info_from_user(self):
@@ -115,9 +118,14 @@ class Game:
                             p.image.set_alpha(255)
                     is_blocks_transparent = False
 
+            if cur_time_in_millis() - self.rewind_start > 3_000:
+                self.in_rewind = False
+
             for e in pygame.event.get():
                 if e.type == QUIT:
                     flag = True
+                    self.server_client.stop()
+                    self.message_repository.stop()
                     raise SystemExit
                 if e.type == KEYDOWN and e.key == K_UP:
                     up = True
@@ -130,7 +138,11 @@ class Game:
                 if e.type == KEYDOWN and e.key == K_RSHIFT and cur_time_in_millis() - self.last_disable_block_activating > 20_000:
                     self.last_disable_block_activating = cur_time_in_millis()
                     self.server_client.send_disable_block_action()
-
+                if e.type == KEYUP and e.key == K_r:
+                    self.in_rewind = False
+                if e.type == KEYDOWN and e.key == K_r:
+                    self.in_rewind = True
+                    self.rewind_start = cur_time_in_millis()
                 if e.type == KEYUP and e.key == K_UP:
                     up = False
                 if e.type == KEYUP and e.key == K_RIGHT:
@@ -143,19 +155,26 @@ class Game:
                     self.hero.rect.x = 40
                     self.hero.rect.y = 4500
 
-
             self.screen.blit(self.bg, (0, 0))  # Каждую итерацию необходимо всё перерисовывать
 
             self.camera.update(self.hero)  # центризируем камеру относительно персонажа
-            self.hero.update(left, right, up, self.platforms, boost)  # передвижение
+            if not self.in_rewind:
+                self.hero.update(left, right, up, self.platforms, boost)  # передвижение
+                self.message_repository.push({"x": self.hero.rect.x, "y": self.hero.rect.y})
+            else:
+                last_pos = self.message_repository.pop_last_message()
+                self.hero.rect.x = last_pos["x"]
+                self.hero.rect.y = last_pos["y"]
             self.server_client.send_position(self.hero.rect.x, self.hero.rect.y)
             self._update_other_players_info()
             for e in self.entities:
                 self.screen.blit(e.image, self.camera.apply(e))
             pygame.display.update()  # обновление и вывод всех изменений на экран
 
-    def _init_position_manager(self):
+    def _init_external_resources(self):
         self.server_client = ServerClient(self.player_name, self.host)
+        self.server_client.start()
+        self.message_repository.start_clear_thread()
 
     def _init_level(self):
         x = y = 0  # координаты
