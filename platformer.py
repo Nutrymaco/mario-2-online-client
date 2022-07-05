@@ -9,6 +9,7 @@ import requests
 from blocks import Platform
 from player import *
 from server_actions import ServerClient
+from utils import cur_time_in_millis
 
 
 class Camera(object):
@@ -46,6 +47,7 @@ class Game:
         self.hero = PlayerSprite(30, 4500)
         self.platforms = []  # то, во что мы будем врезаться или опираться
         self.other_players = dict()
+        self.last_disable_block_activating = 0
 
     def start(self):
         self._get_info_from_user()
@@ -125,7 +127,8 @@ class Game:
                     right = True
                 if e.type == KEYDOWN and e.key == K_LSHIFT:
                     boost = True
-                if e.type == KEYDOWN and e.key == K_RSHIFT:
+                if e.type == KEYDOWN and e.key == K_RSHIFT and cur_time_in_millis() - self.last_disable_block_activating > 20_000:
+                    self.last_disable_block_activating = cur_time_in_millis()
                     self.server_client.send_disable_block_action()
 
                 if e.type == KEYUP and e.key == K_UP:

@@ -4,6 +4,8 @@ from threading import Thread
 
 import websocket
 
+from utils import cur_time_in_millis
+
 
 class PositionHolder:
     def __init__(self, json):
@@ -56,7 +58,7 @@ class ServerClient:
             return
         self.last_pos_x = x
         self.last_pos_y = y
-        self.ws.send(format("{\"type\": \"POSITION\", \"timestamp\": \"" + str(int(time.time() * 1000)) + "\", \"data\": {\"x\" : " + str(x) + ", \"y\" : " + str(y) + "}}"))
+        self.ws.send(format("{\"type\": \"POSITION\", \"timestamp\": \"" + str(cur_time_in_millis()) + "\", \"data\": {\"x\" : " + str(x) + ", \"y\" : " + str(y) + "}}"))
 
     def send_disable_block_action(self):
-        self.ws.send(json.dumps({"type": "DISABLE_BLOCK", "timestamp" : str(int(time.time() * 1000))}))
+        self.ws.send(json.dumps({"type": "DISABLE_BLOCK", "timestamp" : str(cur_time_in_millis())}))
