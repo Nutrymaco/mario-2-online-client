@@ -160,11 +160,17 @@ class Game:
             self.camera.update(self.hero)  # центризируем камеру относительно персонажа
             if not self.in_rewind:
                 self.hero.update(left, right, up, self.platforms, boost)  # передвижение
-                self.message_repository.push({"x": self.hero.rect.x, "y": self.hero.rect.y})
+                self.message_repository.push({
+                    "x": self.hero.rect.x,
+                    "y": self.hero.rect.y,
+                    "action_type": self.hero.cur_action_type
+                })
             else:
                 last_pos = self.message_repository.pop_last_message()
                 self.hero.rect.x = last_pos["x"]
                 self.hero.rect.y = last_pos["y"]
+                self.hero.update_by_action_type(last_pos["action_type"])
+
             self.server_client.send_position(self.hero.rect.x, self.hero.rect.y)
             self._update_other_players_info()
             for e in self.entities:
